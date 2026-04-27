@@ -179,8 +179,9 @@ def variable_verify(ra, dec, # Core Inputs
 
   # Checks Background Type
   if ((background_type != 'mean') and (background_type != 'median')
-      and (background_type != 'mode')):
-    print('Please Input a Valid: Background Type (mean, median, mode)')
+      and (background_type != 'mode')
+      and (background_type != 'none')):
+    print('Please Input a Valid: Background Type (mean, median, mode, none)')
     print('Read Documentation: https://github.com/huntbrooks85/Xcavation')
     return False
 
@@ -240,7 +241,7 @@ class genspec_profile:
     retry_count: int = 10 # How Many HTML Retries
     clean_type: str = 'none' # What type of Image Cleaning
     bad_bits: list = field(default_factory=lambda: [0,1,10,11]) # Flags Removed
-    background_type: str = 'mean' # What type of background subtraction
+    background_type: str = 'mean' # What type of background subtraction (mean, median, mode, none)
     cutout_size: int = 150 # Cutout Size in arcsec
     zodi_subtract: bool = True # Whether ZODI Light is subtracted
     sigclip_sigma: float = 5 # Astropy.SigmaClip(sigma=5.0)

@@ -112,7 +112,8 @@
     - *options:* Go to Section 6 of [HERE](https://caltech-ipac.github.io/irsa-tutorials/spherex-intro/#id-7-visualize-a-spherex-spectral-image-mef-using-the-firefly-python-client) for each flag type.
     - *example:* ```[0, 1, 5, 6, 10, 11]```, default=```[0, 1, 10, 11]```
   - **background_type:** How the Background Field is Calculated: *string*
-    - *options:* ```mean```, ```median```, ```mode```
+    - *options:* ```mean```, ```median```, ```mode```, ```none```
+    - `none` disables local annulus subtraction, so flux/error use aperture-only terms.
     - *example:* ```mode```, default=```mean```
   - **cutout_size:** The Size of the Cutout in Arcsec: *int*
     - *example:* ```500```, default=```150```
@@ -127,13 +128,18 @@
 1.  <code>wavelength</code>: Wavelength of a queried position: $\mu m$: <code> float </code>
 2.  <code>delta_lambda</code>: The resolving power solution ($\Delta \lambda = \frac{\lambda}{R}$) from Table 2 of [Akeson et al. (2025)](https://irsa.ipac.caltech.edu/data/SPHEREx/docs/SPHEREx_Expsupp_QR_v1.0.pdf): $\mu m$: <code> float </code>
 3.  <code>flux</code>: Flux from the given aperture photometry: $\mu Jy$: <code> float </code>
+    - For `background_type != 'none'`: $F = F_{ap} - (B_{pix}\times A_{ap})$
+    - For `background_type = 'none'`: $F = F_{ap}$ (no local background subtraction)
 4.  <code>flux_err</code>: Flux error from the given aperture photometry: $\mu Jy$: <code> float </code>
+    - For `background_type != 'none'`: $\sigma_F = \sqrt{\sigma^2_{ap} + (A_{ap}^2 \sigma^2_{B,pix})}$
+    - For `background_type = 'none'`: $\sigma_F = \sqrt{\sigma^2_{ap}}$
 5. <code>flag_count</code>: Dictionary of every bit measured in the aperture
 6.  <code>SNR</code>: Signal-to-Noise Ratio ($\frac{F}{\sigma_{F}}$): <code> float </code>
 7.  <code>flux_cutout</code>: The cutout flux image in $\mu Jy$: <code> numpy array</code>
 8.  <code>flag_cutout</code>: The cutout flag image in bits: <code> numpy array</code>
 9.  <code>aperture</code>: The aperture array in cutout size in booleans: <code> numpy array</code>
 10.  <code>annulus</code>: The annulus array in cutout size in booleans: <code> numpy array</code>
+    - When `background_type = 'none'`, annulus metadata/geometry are still returned for compatibility, but ignored in flux/error calculations.
 11.  <code>x_loc</code>: The x_loc of the centeroid in the flux cutout: <code> float </code>
 12.  <code>y_loc</code>: The y_loc of the centeroid in the flux cutout: <code> float </code>
 13. <code> ap_radius</code>: The radius of the aperture: 2.5 $\times$ FWHM: $arcsec$: <code> float </code>
@@ -159,7 +165,7 @@ user_config = genspec_profile(pmra = 0, pmdec = 0,
                               enable_print = True, ram_download = False, 
                               retry_count = 10,
                               clean_type = 'mask', bad_bits = [0, 1, 10, 11],
-                              background_type = 'mean',
+                              background_type = 'none',
                               cutout_size = 150,
                               zodi_subtract = True,
                               sigclip_sigma = 5, sigclip_maxiters = 5)
@@ -183,4 +189,3 @@ df = genspec(ra, dec, config = user_config)
 1. If you intend to publish any calculations done by xcavation, please reference Brooks et al. (in prep.).
 
 2. Please reference the relevant [SPHEREx citations](https://spherex.caltech.edu/page/publications).
-
