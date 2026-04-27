@@ -117,7 +117,7 @@ def spherex_aperature_phot(url_og, coord, pm, mjd,  # Coords
       r_annulus_out:  Outer radius of background annulus in units of FWHM (float)
       ram_download: Download the FITS entirely into memory (bool)
       bad_bits: FLAG extension to mask as bad pixels (list)
-      background_type: Mean, Median, or Mode of Background Annulus (str)
+      background_type: Mean, Median, Mode, or None for no local background subtraction (str)
       cutout_size: Cutout Size in pixels (int)
       zodi_subtract: Whether ZODI light is subtracted (bool)
       sigclip_sigma: Background Astropy.SigmaClip sigma level (float)
@@ -274,7 +274,9 @@ def spherex_aperature_phot(url_og, coord, pm, mjd,  # Coords
         # ----- Background Frame ----- #
         # Calculates Background Frame
         sigclip = SigmaClip(sigma=sigclip_sigma, maxiters=sigclip_maxiters) # Sigma Clip For Background
-        if background_type == 'mean':
+        if background_type == 'none':
+          bkg_per_pix = 0.0 # No local background subtraction
+        elif background_type == 'mean':
           bkg_per_pix = (ApertureStats(flux_ujy, annulus_ap,
                           sigma_clip=sigclip)).mean # Average Annulus Background
         elif background_type == 'median':
@@ -315,7 +317,10 @@ def spherex_aperature_phot(url_og, coord, pm, mjd,  # Coords
                   "url": url_og,
                   "mjd": np.nan
                   }
-        total_bkg = bkg_per_pix * area # Background Frame in Aperture Area
+        if background_type == 'none':
+          total_bkg = 0.0
+        else:
+          total_bkg = bkg_per_pix * area # Background Frame in Aperture Area
         # ---------------------------- #
 
 
@@ -327,7 +332,10 @@ def spherex_aperature_phot(url_og, coord, pm, mjd,  # Coords
                                            mask = bad_pixel_mask) # w/ mask
         else:
           phot_table = aperture_photometry(flux_ujy, aperture) # w/o mask
-        flux_ap = phot_table['aperture_sum'][0] - total_bkg # Final Aperture
+        if background_type == 'none':
+          flux_ap = phot_table['aperture_sum'][0] # Final Aperture (no bkg subtraction)
+        else:
+          flux_ap = phot_table['aperture_sum'][0] - total_bkg # Final Aperture
         # ------------------------------------ #
 
 
@@ -342,11 +350,14 @@ def spherex_aperature_phot(url_og, coord, pm, mjd,  # Coords
 
         # Calculate Progated Errors
         var_flux_ap = phot_var_table['aperture_sum'][0] # Aperture Error
-        top_var = ((ApertureStats(flux_ujy, annulus_ap,
-                                  sigma_clip=sigclip)).std)**2
-        bot_var = (annulus_ap.area_overlap(var_ujy))
-        var_bkg_per_pix = top_var/bot_var # Background Error
-        flux_err = np.sqrt(var_flux_ap+(area**2)*var_bkg_per_pix) # Total Error
+        if background_type == 'none':
+          flux_err = np.sqrt(var_flux_ap) # Aperture-only error
+        else:
+          top_var = ((ApertureStats(flux_ujy, annulus_ap,
+                                    sigma_clip=sigclip)).std)**2
+          bot_var = (annulus_ap.area_overlap(var_ujy))
+          var_bkg_per_pix = top_var/bot_var # Background Error
+          flux_err = np.sqrt(var_flux_ap+(area**2)*var_bkg_per_pix) # Total Error
         # ------------------------------------- #
 
 
