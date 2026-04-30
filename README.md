@@ -32,16 +32,36 @@
 </div>
 
 <div align="center">
-<pp><b> pip Installation </b><pp>
-</div>
-<div align="center">
+<pp><b> Quick Installation (Fork / Experimental Build) </b><pp>
 </div>
 
-1. **Download Python:** Visit [here](https://www.python.org/downloads/) to install Python 
-2. **Download pip:** Visit [here](https://pip.pypa.io/en/stable/installation/) to install pip
-3. **Run Install Command:** Run the command in terminal:
+> This repository is a **fork** and an **experimental variant** of the original `xcavation` project.
+> Installation can differ from the upstream package, so use the steps below for this fork.
+
+1. **Install Python 3.10+**: Download from [python.org](https://www.python.org/downloads/).
+2. **Create and activate a virtual environment (recommended):**
    ```bash
-   pip install xcavation
+   python -m venv .venv
+   source .venv/bin/activate
+   ```
+   On Windows PowerShell:
+   ```powershell
+   .venv\Scripts\Activate.ps1
+   ```
+3. **Install this fork from your cloned repository root:**
+   ```bash
+   pip install -U pip
+   pip install -e .
+   ```
+4. **Verify installation:**
+   ```bash
+   python -c "from xcavation.genspec import genspec; print('xcavation fork installed')"
+   ```
+
+If you prefer installing directly from your GitHub fork, replace `<your-user>` with your GitHub username:
+```bash
+pip install "git+https://github.com/<your-user>/xcavation.git"
+```
 
 <div align="center">
   <h2 style="font-size: 2em;">🏗️ How to Use xcavation 🏗️</h2>
